@@ -15,10 +15,17 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string;
+  phone_number?: string;
+  industry_type?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
   role: UserRole;
   avatar_url?: string;
   created_at: string;
   is_active: boolean;
+  permission?: string[];
 }
 
 export interface Category {

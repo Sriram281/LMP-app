@@ -141,7 +141,7 @@ export default function AIChatbot() {
     setInputText('');
     setIsLoading(true);
 
-    
+
     try {
       // Call OpenRouter API
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {

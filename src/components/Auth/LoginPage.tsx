@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { BookOpen, Mail } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,8 +13,21 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
-
+  const [successMessage, setSuccessMessage] = useState('');
+  
   const { signIn, signUp } = useAuth();
+  const location = useLocation();
+
+  // Check if we're in a password reset flow
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const isResetFlow = urlParams.has('type') && urlParams.get('type') === 'recovery';
+    
+    if (isResetFlow) {
+      // Redirect to reset password page
+      window.location.href = '/reset-password';
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +115,12 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+          
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-600 dark:text-green-400 text-sm">
+              {successMessage}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
@@ -154,7 +174,7 @@ export default function LoginPage() {
                   onChange={(e) => setRole(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="student">Student</option>
+                  <option value="student">Client</option>
                   <option value="instructor">Instructor</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -169,6 +189,17 @@ export default function LoginPage() {
               {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
             </button>
           </form>
+
+          {isLogin && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => window.location.href = '/forgot-password'}
+                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <button
