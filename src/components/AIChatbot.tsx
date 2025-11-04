@@ -141,9 +141,47 @@ export default function AIChatbot() {
     setInputText('');
     setIsLoading(true);
 
-
     try {
-      // Call OpenRouter API
+      // First, try to get data from our backend API
+      console.log('Sending request to chat API with message:', inputText);
+      const response = await fetch('http://localhost:3003/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: inputText }),
+      });
+
+      console.log('Received response from chat API:', response.status, response.statusText);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Response data:', data);
+        const aiMessage: Message = {
+          id: Date.now().toString(),
+          text: data.reply,
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        console.log('Chat API request failed, falling back to OpenRouter API');
+        // Fallback to OpenRouter API if our backend fails
+        await fallbackToOpenRouter(inputText);
+      }
+    } catch (error) {
+      console.error('Error with backend API:', error);
+      // Fallback to OpenRouter API if our backend fails
+      await fallbackToOpenRouter(inputText);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fallbackToOpenRouter = async (inputText: string) => {
+    try {
+      console.log('Falling back to OpenRouter API with message:', inputText);
+      // Call OpenRouter API as fallback
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -161,14 +199,16 @@ export default function AIChatbot() {
             { role: 'user', content: inputText }
           ],
         }),
-
       });
+
+      console.log('OpenRouter API response:', response.status, response.statusText);
 
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('OpenRouter API data:', data);
       const aiResponse = data.choices[0]?.message?.content || 'Sorry, I couldn\'t process that request.';
       
       // Format the response to remove unwanted characters
@@ -183,9 +223,8 @@ export default function AIChatbot() {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      setIsLoading(false);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error with OpenRouter API:', error);
       const errorMessage: Message = {
         id: Date.now().toString(),
         text: 'Sorry, I encountered an error. Please try again.',
@@ -193,8 +232,6 @@ export default function AIChatbot() {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
-    } finally {
-    //   setIsLoading(true);
     }
   };
 
