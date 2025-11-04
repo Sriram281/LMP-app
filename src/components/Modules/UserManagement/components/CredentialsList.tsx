@@ -1,4 +1,4 @@
-import { Trash2, Search, FileText, CheckCircle } from "lucide-react";
+import { Trash2, Search, FileText, CheckCircle, XCircle } from "lucide-react";
 import { Profile } from "../../../../lib/supabase";
 import { useState } from "react";
 import { supabase } from "../../../../lib/supabase";
@@ -18,19 +18,36 @@ export default function CredentialsList({
   onSearchChange,
   onEdit,
   onDelete,
-  onToggleActive
+  onToggleActive,
 }: CredentialsListProps) {
   const [userStatuses, setUserStatuses] = useState<Record<string, string>>(
     users.reduce((acc, user) => {
-      acc[user.id] = user.is_active ? "Active" : "Draft";
+      // Determine initial status based on is_active value
+      let status = "Draft";
+      if (user.is_active === true) {
+        status = "Active";
+      } else if (user.is_active === false) {
+        status = "Disable";
+      }
+      acc[user.id] = status;
       return acc;
     }, {} as Record<string, string>)
   );
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
     try {
-      const is_active = newStatus === "Active";
-      
+      let is_active: boolean | null = null;
+
+      // Map status to is_active value
+      if (newStatus === "Active") {
+        is_active = true;
+      } else if (newStatus === "Disable") {
+        is_active = false;
+      } else if (newStatus === "Draft") {
+        is_active = null;
+      }
+      // For "Draft", is_active remains null
+
       // Update in Supabase
       const { error } = await supabase
         .from("profiles")
@@ -40,13 +57,13 @@ export default function CredentialsList({
       if (error) throw error;
 
       // Update local state
-      setUserStatuses(prev => ({
+      setUserStatuses((prev) => ({
         ...prev,
-        [userId]: newStatus
+        [userId]: newStatus,
       }));
 
       // Trigger a refresh in parent component
-      onToggleActive(users.find(u => u.id === userId) || users[0]);
+      onToggleActive(users.find((u) => u.id === userId) || users[0]);
     } catch (error) {
       console.error("Error updating user status:", error);
     }
@@ -137,7 +154,7 @@ export default function CredentialsList({
                     }
                     `}
                   > */}
-                    {user.role}
+                  {user.role}
                   {/* </span> */}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
@@ -146,17 +163,36 @@ export default function CredentialsList({
                 <td className="px-6 py-4">
                   <div className="relative">
                     <select
-                      value={userStatuses[user.id] || (user.is_active ? "Active" : "Draft")}
-                      onChange={(e) => handleStatusChange(user.id, e.target.value)}
+                      value={
+                        userStatuses[user.id] ||
+                        (user.is_active === true
+                          ? "Active"
+                          : user.is_active === false
+                          ? "Disable"
+                          : "Draft")
+                      }
+                      onChange={(e) =>
+                        handleStatusChange(user.id, e.target.value)
+                      }
                       className="px-3 py-1 text-xs font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="Draft" className="flex items-center gap-2">
                         <FileText size={12} className="inline mr-1" />
                         Draft
                       </option>
-                      <option value="Active" className="flex items-center gap-2">
+                      <option
+                        value="Active"
+                        className="flex items-center gap-2"
+                      >
                         <CheckCircle size={12} className="inline mr-1" />
                         Active
+                      </option>
+                      <option
+                        value="Disable"
+                        className="flex items-center gap-2"
+                      >
+                        <XCircle size={12} className="inline mr-1" />
+                        Disable
                       </option>
                     </select>
                   </div>

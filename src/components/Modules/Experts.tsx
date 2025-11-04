@@ -287,63 +287,120 @@ export default function Experts() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredExperts.map((expert) => (
-            <div
-              key={expert.id}
-              className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-600"
-            >
-              <div className="flex flex-col items-center text-center mb-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mb-3">
-                  {expert.profile_photo ? (
-                    <img src={expert.profile_photo} alt={expert.full_name} className="w-full h-full rounded-full" />
-                  ) : (
-                    <span className="text-2xl text-white font-bold">
-                      {expert.full_name?.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-1">
-                  {expert.full_name || 'N/A'}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  {expert.email || 'N/A'}
-                </p>
-                <div className="flex items-center gap-2 mb-3">
-                  <Award size={16} className="text-blue-500" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {expert.expertise_domain || 'No domain'}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {expert.experience_years || expert.years_experience} years experience
-                </span>
-              </div>
-
-              {expert.bio && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                  {expert.bio}
-                </p>
-              )}
-
-              <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-600">
-                <button
-                  onClick={() => handleEdit(expert)}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  <Edit2 size={14} />
-                  <span className="text-sm">Edit</span>
-                </button>
-                <button
-                  onClick={() => handleDelete(expert.id)}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 size={14} />
-                  <span className="text-sm">Delete</span>
-                </button>
-              </div>
-            </div>
-          ))}
+        {/* Table view instead of cards */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Expert
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Expertise
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Experience
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Organization
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredExperts.map((expert) => (
+                <tr key={expert.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        {expert.profile_photo ? (
+                          <img 
+                            src={expert.profile_photo} 
+                            alt={expert.full_name} 
+                            className="w-full h-full rounded-full" 
+                          />
+                        ) : (
+                          <span className="text-white font-semibold">
+                            {expert.full_name?.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800 dark:text-white">
+                          {expert.full_name || 'N/A'}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {expert.designation || 'No designation'}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {expert.email || 'N/A'}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {expert.phone_number || 'No phone'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {expert.expertise_domain || 'No domain'}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {expert.expertise_domains?.slice(0, 2).map((domain, index) => (
+                        <span 
+                          key={index} 
+                          className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded"
+                        >
+                          {domain}
+                        </span>
+                      ))}
+                      {expert.expertise_domains && expert.expertise_domains.length > 2 && (
+                        <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded">
+                          +{expert.expertise_domains.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {expert.experience_years || expert.years_experience} years
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      Since {new Date(expert.created_at).getFullYear() || 'N/A'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    {expert.current_organization || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEdit(expert)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
+                        title="Edit"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(expert.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {filteredExperts.length === 0 && (

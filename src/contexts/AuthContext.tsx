@@ -6,19 +6,23 @@ import {
   ReactNode,
 } from "react";
 import { User } from "@supabase/supabase-js";
-import { supabase, Profile } from "../lib/supabase";
+import { supabase, Profile, UserRole } from "../lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; message?: string }>;
   signUp: (
     email: string,
     password: string,
     fullName: string,
     role: string
-  ) => Promise<void>;
+  ) => Promise<{ success: boolean; message?: string }>;
   signOut: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
 }
@@ -29,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,12 +79,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const createProfile = async (user: User, fullName: string, role: string) => {
+    try {
+      // Map 'Client' role to 'student' since that's what the database expects
+      const mappedRole: UserRole =
+        role === "Client" ? "student" : (role as UserRole);
+      console.log(mappedRole, fullName, user.email, user.id);
+
+      const { error: insertError } = await supabase.from("profiles").insert({
+        id: user.id,
+        email: user.email,
+        full_name: fullName,
+        role: mappedRole,
+        is_active: false, // Default to active for self-signup users
+      });
+
+      if (insertError) throw insertError;
+      console.log("insertError : ", insertError);
+    } catch (error) {
+      console.error("Error creating profile:", error);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
     if (error) throw error;
+
+    // Load profile to check if user is active
+    if (data.user) {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("is_active")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        // Check if user is active
+        if (profileData && profileData.is_active === false) {
+          // Sign out the user immediately
+          await supabase.auth.signOut();
+          return {
+            success: false,
+            message:
+              "Sorry, You dont have a access to login, please reach your Administrator.",
+          };
+        }
+
+        // Load full profile if user is active
+        await loadProfile(data.user.id);
+        return { success: true };
+      } catch (profileError) {
+        // Sign out on profile error
+        await supabase.auth.signOut();
+        throw profileError;
+      }
+    }
+
+    return { success: true };
   };
 
   const signUp = async (
@@ -88,21 +150,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fullName: string,
     role: string
   ) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: role,
+        },
+      },
+    });
+
     if (error) throw error;
 
-    console.log("data : ", data);
+    // Since email confirmation is disabled, create profile immediately
     if (data.user) {
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-        role,
-      });
-
-      console.log(profileError);
-      // if (profileError) throw profileError;
+      await createProfile(data.user, fullName, role);
+      navigate("/login");
     }
+
+    // Return success message
+    return {
+      success: true,
+      message: "Account created successfully. Please login to continue.",
+    };
   };
 
   const signOut = async () => {
@@ -112,14 +183,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updatePassword = async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({
-      password: newPassword
+      password: newPassword,
     });
     if (error) throw error;
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, loading, signIn, signUp, signOut, updatePassword }}
+      value={{
+        user,
+        profile,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        updatePassword,
+      }}
     >
       {children}
     </AuthContext.Provider>

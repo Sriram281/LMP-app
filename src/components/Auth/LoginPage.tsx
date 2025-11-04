@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { BookOpen, Mail } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('student');
+  const [role, setRole] = useState('Client');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
@@ -17,6 +17,7 @@ export default function LoginPage() {
   
   const { signIn, signUp } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Check if we're in a password reset flow
   useEffect(() => {
@@ -25,9 +26,9 @@ export default function LoginPage() {
     
     if (isResetFlow) {
       // Redirect to reset password page
-      window.location.href = '/reset-password';
+      navigate('/reset-password');
     }
-  }, [location]);
+  }, [location, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,12 +37,20 @@ export default function LoginPage() {
 
     try {
       if (isLogin) {
-        await signIn(email, password);
+        const result = await signIn(email, password);
+        if (!result.success) {
+          setError(result.message || 'Authentication failed');
+          alert("Oops, you don't have access to login, Please contact your administrator");
+        }
       } else {
-        await signUp(email, password, fullName, role);
-        // Show only verification message after successful signup
-        setVerificationEmail(email);
-        setShowVerificationMessage(true);
+        const result = await signUp(email, password, fullName, role);
+        if (result.success) {
+          // Show verification message after successful signup
+          setVerificationEmail(email);
+          setShowVerificationMessage(true);
+        } else {
+          setError(result.message || 'Signup failed');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -50,14 +59,15 @@ export default function LoginPage() {
     }
   };
 
-  // Function to reset and show signup form again
+  // Function to reset and show login form again
   const resetForm = () => {
     setShowVerificationMessage(false);
     setEmail('');
     setPassword('');
     setFullName('');
-    setRole('student');
+    setRole('Client');
     setError('');
+    setIsLogin(true); // Switch to login mode
   };
 
   // If showing verification message, display only that
@@ -73,19 +83,18 @@ export default function LoginPage() {
             </div>
 
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-              Check your email
+              Account Created Successfully
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              We've sent a verification link to <span className="font-semibold">{verificationEmail}</span>. 
-              Please click the link to verify your account and complete registration.
+              {successMessage || "Your account has been created successfully. Please login to continue."}
             </p>
 
             <button
               onClick={resetForm}
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all"
             >
-              Back to Sign Up
+              Continue to Login
             </button>
           </div>
         </div>
@@ -174,7 +183,7 @@ export default function LoginPage() {
                   onChange={(e) => setRole(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="student">Client</option>
+                  <option value="Client">Client</option>
                   <option value="instructor">Instructor</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -193,7 +202,7 @@ export default function LoginPage() {
           {isLogin && (
             <div className="mt-4 text-center">
               <button
-                onClick={() => window.location.href = '/forgot-password'}
+                onClick={() => navigate('/forgot-password')}
                 className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
               >
                 Forgot Password?
