@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, X } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useState, useRef, useEffect } from "react";
+import { Send, MessageCircle, X } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   timestamp: Date;
 }
 
@@ -14,20 +14,22 @@ export default function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => {
     // Load messages from localStorage on component mount
-    if (typeof window !== 'undefined') {
-      const savedUserId = localStorage.getItem('current_user_id');
+    if (typeof window !== "undefined") {
+      const savedUserId = localStorage.getItem("current_user_id");
       if (savedUserId) {
-        const savedMessages = localStorage.getItem(`chatbot_messages_${savedUserId}`);
+        const savedMessages = localStorage.getItem(
+          `chatbot_messages_${savedUserId}`
+        );
         if (savedMessages) {
           try {
             const parsedMessages = JSON.parse(savedMessages);
             // Convert timestamp strings back to Date objects
             return parsedMessages.map((msg: any) => ({
               ...msg,
-              timestamp: new Date(msg.timestamp)
+              timestamp: new Date(msg.timestamp),
             }));
           } catch (e) {
-            console.error('Failed to parse saved messages', e);
+            console.error("Failed to parse saved messages", e);
           }
         }
       }
@@ -35,14 +37,14 @@ export default function AIChatbot() {
     // Default welcome message
     return [
       {
-        id: '1',
-        text: 'Hello! I\'m your AI assistant. How can I help you today?',
-        sender: 'ai',
+        id: "1",
+        text: "Hello! I'm your AI assistant. How can I help you today?",
+        sender: "ai",
         timestamp: new Date(),
-      }
+      },
     ];
   });
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -50,9 +52,12 @@ export default function AIChatbot() {
   useEffect(() => {
     if (user) {
       // Save current user ID
-      localStorage.setItem('current_user_id', user.id);
+      localStorage.setItem("current_user_id", user.id);
       // Save messages
-      localStorage.setItem(`chatbot_messages_${user.id}`, JSON.stringify(messages));
+      localStorage.setItem(
+        `chatbot_messages_${user.id}`,
+        JSON.stringify(messages)
+      );
     }
   }, [messages, user]);
 
@@ -66,64 +71,52 @@ export default function AIChatbot() {
           // Convert timestamp strings back to Date objects
           const messagesWithDates = parsedMessages.map((msg: any) => ({
             ...msg,
-            timestamp: new Date(msg.timestamp)
+            timestamp: new Date(msg.timestamp),
           }));
           setMessages(messagesWithDates);
         } catch (e) {
-          console.error('Failed to parse saved messages', e);
+          console.error("Failed to parse saved messages", e);
           // Reset to welcome message on error
           setMessages([
             {
-              id: '1',
-              text: 'Hello! I\'m your AI assistant. How can I help you today?',
-              sender: 'ai',
+              id: "1",
+              text: "Hello! I'm your AI assistant. How can I help you today?",
+              sender: "ai",
               timestamp: new Date(),
-            }
+            },
           ]);
         }
       } else {
         // No saved messages, use welcome message
         setMessages([
           {
-            id: '1',
-            text: 'Hello! I\'m your AI assistant. How can I help you today?',
-            sender: 'ai',
+            id: "1",
+            text: "Hello! I'm your AI assistant. How can I help you today?",
+            sender: "ai",
             timestamp: new Date(),
-          }
+          },
         ]);
       }
     } else {
       // No user, clear messages but keep welcome message
       setMessages([
         {
-          id: '1',
-          text: 'Hello! I\'m your AI assistant. How can I help you today?',
-          sender: 'ai',
+          id: "1",
+          text: "Hello! I'm your AI assistant. How can I help you today?",
+          sender: "ai",
           timestamp: new Date(),
-        }
+        },
       ]);
     }
   }, [user]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const formatResponse = (text: string) => {
-    // Remove extra asterisks and clean up formatting
-    return text
-      .replace(/<s>/g, '')        // Remove <s> tags
-      .replace(/<\/s>/g, '')      // Remove </s> tags
-      .replace(/\[\/?s\]/g, '')   // Remove [s] and [/s] tags
-      .replace(/\*\*/g, '')       // Remove bold markers
-      .replace(/\*/g, '')         // Remove italic markers
-      .replace(/\\n/g, '\n')      // Convert escaped newlines
-      .trim();
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,105 +126,69 @@ export default function AIChatbot() {
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
-      sender: 'user',
+      sender: "user",
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText("");
     setIsLoading(true);
 
     try {
-      // First, try to get data from our backend API
-      console.log('Sending request to chat API with message:', inputText);
-      const response = await fetch('http://localhost:3003/chat', {
-        method: 'POST',
+      console.log("Sending request to chat API with message:", inputText);
+      
+      // Send inputText directly to the backend
+      const response = await fetch("http://localhost:3004/chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ message: inputText }),
       });
 
-      console.log('Received response from chat API:', response.status, response.statusText);
+      console.log(
+        "Received response from chat API:",
+        response.status,
+        response.statusText
+      );
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Response data:', data);
+        console.log("Full response data from server:", data);
+        
+        // Log the AI generated query if it exists in the response
+        if (data.query) {
+          console.log("AI Generated Query:", data.query);
+        }
+        
         const aiMessage: Message = {
           id: Date.now().toString(),
           text: data.reply,
-          sender: 'ai',
+          sender: "ai",
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, aiMessage]);
+        setMessages((prev) => [...prev, aiMessage]);
       } else {
-        console.log('Chat API request failed, falling back to OpenRouter API');
-        // Fallback to OpenRouter API if our backend fails
-        await fallbackToOpenRouter(inputText);
+        console.error("Server returned error status:", response.status);
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          text: "Sorry, I encountered an error processing your request.",
+          sender: "ai",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
       }
     } catch (error) {
-      console.error('Error with backend API:', error);
-      // Fallback to OpenRouter API if our backend fails
-      await fallbackToOpenRouter(inputText);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fallbackToOpenRouter = async (inputText: string) => {
-    try {
-      console.log('Falling back to OpenRouter API with message:', inputText);
-      // Call OpenRouter API as fallback
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer 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`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'mistralai/mistral-7b-instruct:free',
-          messages: [
-            { role: 'system', content: 'You are a helpful AI assistant for an admin dashboard application. Provide concise, accurate responses. Do not use markdown formatting like ** or *. Use plain text with clear line breaks for lists and structure. Do not include special tokens like <s> or [/s].' },
-            ...messages.filter(msg => msg.sender !== 'ai' || msg.id !== '1').map(msg => ({
-              role: msg.sender === 'user' ? 'user' : 'assistant',
-              content: msg.text
-            })),
-            { role: 'user', content: inputText }
-          ],
-        }),
-      });
-
-      console.log('OpenRouter API response:', response.status, response.statusText);
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('OpenRouter API data:', data);
-      const aiResponse = data.choices[0]?.message?.content || 'Sorry, I couldn\'t process that request.';
-      
-      // Format the response to remove unwanted characters
-      const formattedResponse = formatResponse(aiResponse);
-
-      // Add AI message
-      const aiMessage: Message = {
-        id: Date.now().toString(),
-        text: formattedResponse,
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error with OpenRouter API:', error);
+      console.error("Error communicating with chat API:", error);
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text: 'Sorry, I encountered an error. Please try again.',
-        sender: 'ai',
+        text: "Sorry, I'm having trouble connecting to the server.",
+        sender: "ai",
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -245,14 +202,17 @@ export default function AIChatbot() {
 
   const clearChat = () => {
     const welcomeMessage: Message = {
-      id: '1',
-      text: 'Hello! I\'m your AI assistant. How can I help you today?',
-      sender: 'ai',
+      id: "1",
+      text: "Hello! I'm your AI assistant. How can I help you today?",
+      sender: "ai",
       timestamp: new Date(),
     };
     setMessages([welcomeMessage]);
     if (user) {
-      localStorage.setItem(`chatbot_messages_${user.id}`, JSON.stringify([welcomeMessage]));
+      localStorage.setItem(
+        `chatbot_messages_${user.id}`,
+        JSON.stringify([welcomeMessage])
+      );
     }
   };
 
@@ -277,8 +237,12 @@ export default function AIChatbot() {
                 <MessageCircle size={20} className="text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800 dark:text-white">AI Assistant</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Online</p>
+                <h3 className="font-semibold text-gray-800 dark:text-white">
+                  AI Assistant
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Online
+                </p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -304,18 +268,23 @@ export default function AIChatbot() {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${
+                  message.sender === "user" ? "justify-end" : "justify-start"
+                }`}
               >
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
-                    message.sender === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                    message.sender === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{message.text}</p>
                   <p className="text-xs mt-1 opacity-70">
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </div>
               </div>
@@ -335,7 +304,10 @@ export default function AIChatbot() {
           </div>
 
           {/* Input */}
-          <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <form
+            onSubmit={handleSubmit}
+            className="p-4 border-t border-gray-200 dark:border-gray-700"
+          >
             <div className="flex gap-2">
               <input
                 type="text"
