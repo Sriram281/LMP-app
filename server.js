@@ -25,6 +25,72 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Chatbot server is running" });
 });
 
+// Helper function to format data for display
+function formatDataForDisplay(data, query) {
+  if (!data || data.length === 0) {
+    return "No data found matching your query.";
+  }
+
+  let response = "";
+  const recordCount = data.length;
+
+  // For count queries, show the count directly
+  if (
+    query.toLowerCase().includes("count(") ||
+    query.toLowerCase().includes("count (*)")
+  ) {
+    const count =
+      data[0]?.count ||
+      data[0]?.user_count ||
+      data[0]?.total_count ||
+      recordCount;
+    return `I found ${count} records matching your criteria.`;
+  }
+
+  // For aggregate queries, show the results
+  if (query.toLowerCase().match(/sum\(|avg\(|min\(|max\(|group by/i)) {
+    response = `Query Results:\n\n`;
+    data.forEach((record, index) => {
+      response += `Result ${index + 1}:\n`;
+      Object.entries(record).forEach(([key, value]) => {
+        response += `  ${key}: ${value}\n`;
+      });
+      response += "\n";
+    });
+    return response;
+  }
+
+  // For regular data queries
+  response = `I found ${recordCount} record${recordCount > 1 ? "s" : ""}:\n\n`;
+
+  // If there are too many records, show a summary
+  if (recordCount > 10) {
+    response += `Showing first 10 of ${recordCount} records:\n\n`;
+    data = data.slice(0, 10);
+  }
+
+  data.forEach((record, index) => {
+    response += `Record ${index + 1}:\n`;
+    Object.entries(record).forEach(([key, value]) => {
+      // Format the value for better readability
+      let displayValue = value;
+      if (value === null) displayValue = "NULL";
+      if (value === undefined) displayValue = "N/A";
+      if (typeof value === "boolean") displayValue = value ? "Yes" : "No";
+      if (value instanceof Date) displayValue = value.toLocaleString();
+
+      response += `  ${key}: ${displayValue}\n`;
+    });
+    response += "\n";
+  });
+
+  if (recordCount > 10) {
+    response += `... and ${recordCount - 10} more records.`;
+  }
+
+  return response;
+}
+
 // Chat endpoint with dynamic query generation
 app.post("/chat", async (req, res) => {
   try {
@@ -58,9 +124,7 @@ app.post("/chat", async (req, res) => {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${
-            process.env.VITE_AI_API_KEY
-          }`,
+          Authorization: `Bearer ${process.env.VITE_AI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -124,9 +188,7 @@ app.post("/chat", async (req, res) => {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${
-            process.env.VITE_AI_API_KEY
-          }`,
+          Authorization: `Bearer ${process.env.VITE_AI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -134,7 +196,22 @@ app.post("/chat", async (req, res) => {
           messages: [
             {
               role: "system",
-              content: `You are a PostgreSQL expert. Convert user questions into SQL SELECT queries using the provided database schema. Only generate SELECT queries, never INSERT, UPDATE, or DELETE. Always include table names in column references to avoid ambiguity. Here's the relevant database schema:\n\n${filteredSchemaInfo}\n\nGenerate only the SQL query, nothing else. Do not include a semicolon at the end.`,
+              content: `You are a PostgreSQL expert. Convert user questions into SQL SELECT queries using the provided database schema. 
+
+IMPORTANT INSTRUCTIONS:
+- Generate only SELECT queries (no INSERT, UPDATE, DELETE)
+- You can use: JOIN, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, UNION, aggregate functions
+- Always use table aliases for clarity in JOIN queries
+- Include only necessary columns in SELECT
+- Use proper WHERE conditions based on the user question
+- For counting records, use COUNT(*) with appropriate grouping
+- For data analysis, use appropriate aggregate functions
+- Format dates properly if needed
+- Handle NULL values appropriately
+
+Database schema:\n\n${filteredSchemaInfo}
+
+Return ONLY the SQL query without any explanations or markdown formatting. Do not include a semicolon at the end.`,
             },
             {
               role: "user",
@@ -156,15 +233,15 @@ app.post("/chat", async (req, res) => {
 
     console.log("AI Generated Query:", generatedQuery);
 
-    // Extract the SQL query from the AI response (in case it includes explanations)
+    // Extract the SQL query from the AI response
     let sqlQuery = generatedQuery;
-    const sqlMatch = generatedQuery.match(/SELECT[\s\S]*?[^;]$/i);
+    const sqlMatch = generatedQuery.match(/SELECT[\s\S]*/i);
     if (sqlMatch) {
       sqlQuery = sqlMatch[0];
     }
 
-    // Remove any trailing semicolons
-    sqlQuery = sqlQuery.replace(/;+$/, "");
+    // Remove any trailing semicolons or non-SQL text
+    sqlQuery = sqlQuery.replace(/;+$/, "").split(";")[0].trim();
 
     // Validate that it's a SELECT query
     if (!sqlQuery.toUpperCase().startsWith("SELECT")) {
@@ -172,52 +249,64 @@ app.post("/chat", async (req, res) => {
     }
 
     // Execute the generated query using the safe function
-    console.log("Step 3: Executing generated query");
-    // const { data, error } = await supabase.rpc('execute_safe_query', {
-    //   query_text: sqlQuery
-    // });
-
+    console.log("Step 3: Executing generated query:", sqlQuery);
     const { data, error } = await supabase.rpc("execute_safe_query", {
-      query_text: "SELECT * FROM profiles",
+      query_text: sqlQuery,
     });
 
-    console.log("Query execution result:", { data, error });
+    console.log(
+      "Query execution result - Data length:",
+      data?.length,
+      "Error:",
+      error
+    );
 
     if (error) {
       console.error("Database query error:", error);
-      return res.status(500).json({ error: "Database query failed" });
+
+      // Try to provide a more helpful error message
+      let errorMessage = "Database query failed";
+      if (
+        error.message.includes(
+          "function execute_safe_query(text) does not exist"
+        )
+      ) {
+        errorMessage =
+          "Database function not configured. Please contact administrator.";
+      } else if (
+        error.message.includes("relation") &&
+        error.message.includes("does not exist")
+      ) {
+        errorMessage = "Table not found in database.";
+      } else if (
+        error.message.includes("column") &&
+        error.message.includes("does not exist")
+      ) {
+        errorMessage = "Column not found in table.";
+      }
+
+      return res.status(500).json({
+        error: errorMessage,
+        details: error.message,
+      });
     }
 
-    // Format the response
-    let responseText = "";
-    if (data && data.length > 0) {
-      responseText = `I found ${data.length} records matching your query:\n\n`;
-      // Format the data in a readable way
-      if (Array.isArray(data)) {
-        data.forEach((record, index) => {
-          responseText += `Record ${index + 1}:\n`;
-          for (const [key, value] of Object.entries(record)) {
-            responseText += `  ${key}: ${value}\n`;
-          }
-          responseText += "\n";
-        });
-      } else {
-        responseText += JSON.stringify(data, null, 2);
-      }
-    } else {
-      responseText = "I couldn't find any records matching your query.";
-    }
+    // Format the response based on query type and data
+    const responseText = formatDataForDisplay(data, sqlQuery);
 
     console.log("Sending response to client");
     res.json({
       reply: responseText,
-      query: sqlQuery, // Include the generated query in the response
+      query: sqlQuery,
+      data: data, // Include raw data for frontend processing if needed
+      recordCount: data?.length || 0,
     });
   } catch (error) {
     console.error("Chat API error:", error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while processing your request" });
+    res.status(500).json({
+      error: "An error occurred while processing your request",
+      details: error.message,
+    });
   }
 });
 
