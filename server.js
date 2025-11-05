@@ -59,8 +59,7 @@ app.post("/chat", async (req, res) => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${
-            process.env.OPENROUTER_API_KEY ||
-            "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"
+            process.env.VITE_AI_API_KEY
           }`,
           "Content-Type": "application/json",
         },
@@ -126,8 +125,7 @@ app.post("/chat", async (req, res) => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${
-            process.env.OPENROUTER_API_KEY ||
-            "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"
+            process.env.VITE_AI_API_KEY
           }`,
           "Content-Type": "application/json",
         },
