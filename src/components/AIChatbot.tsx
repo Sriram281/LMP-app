@@ -144,7 +144,7 @@ export default function AIChatbot() {
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -152,7 +152,8 @@ export default function AIChatbot() {
           messages: [
             {
               role: "system",
-              content: "You are a helpful AI assistant for a Learning Management System. Your task is to take raw database query results and create a natural, professional response to the user's original question. Format the response as clean HTML with basic inline CSS for styling. Use semantic HTML tags for proper structure."
+              content:
+                "You are a helpful AI assistant for a Learning Management System. Your task is to take raw database query results and create a natural, professional response to the user's original question. Format the response as clean HTML with basic inline CSS for styling. Use semantic HTML tags for proper structure.",
             },
             {
               role: "user",
@@ -178,8 +179,8 @@ Example format:
   <h2 style="font-weight:bold;margin-bottom:10px;">Courses Found</h2>
   <p><strong>Course Title:</strong> Modern React with Hooks</p>
   <p><strong>Description:</strong> Learn the latest React features...</p>
-</div>`
-            }
+</div>`,
+            },
           ],
         }),
       });
@@ -248,18 +249,34 @@ Example format:
 
         console.log("Data.reply : ", data.reply);
 
-        // Generate humanized response using OpenRouter AI
-        const humanizedResponse = await generateHumanizedResponse(
-          inputText,
-          data.reply
-        );
-
-        const aiMessage: Message = {
-          id: Date.now().toString(),
-          text: humanizedResponse,
-          sender: "ai",
+        let aiMessage: Message = {
+          id: "",
+          text: "",
+          sender: "user",
           timestamp: new Date(),
         };
+        if (!data.query || (data && data?.length === 0)) {
+          aiMessage = {
+            id: Date.now().toString(),
+            text: data.reply,
+            sender: "ai",
+            timestamp: new Date(),
+          };
+        } else {
+          const humanizedResponse = await generateHumanizedResponse(
+            inputText,
+            data.reply
+          );
+          aiMessage = {
+            id: Date.now().toString(),
+            text: humanizedResponse,
+            sender: "ai",
+            timestamp: new Date(),
+          };
+        }
+
+        // Generate humanized response using OpenRouter AI
+
         setMessages((prev) => [...prev, aiMessage]);
       } else {
         console.error("Server returned error status:", response.status);
@@ -373,7 +390,7 @@ Example format:
                   }`}
                 >
                   {message.sender === "ai" ? (
-                    <div 
+                    <div
                       className="whitespace-normal"
                       dangerouslySetInnerHTML={{ __html: message.text }}
                     />

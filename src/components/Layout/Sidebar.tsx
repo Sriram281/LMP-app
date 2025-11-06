@@ -62,7 +62,7 @@ export default function Sidebar({
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         {!isCollapsed && (
           <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-            LMS Admin
+            Blue Lotus Tech
           </h1>
         )}
         <button

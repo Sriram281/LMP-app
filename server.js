@@ -91,10 +91,88 @@ function formatDataForDisplay(data, query) {
   return response;
 }
 
+const GenericResponse = async (message) => {
+  console.log("Message : ", message);
+  if (message) {
+    console.log("No records found. Generating AI fallback response.");
+
+    // Define the secondary AI logic
+    const aiFallbackResponse = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.VITE_AI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "minimax/minimax-m2:free", // or "minimax/minimax-m2:free" if you prefer same model
+          messages: [
+            {
+              role: "system",
+              content: `
+You are a helpful, polite AI assistant for a Learning Management or Database Chatbot.
+
+Task:
+- If the user's message sounds **generic or conversational** (like "hi", "hello", "good morning", "how are you"), respond with a **friendly greeting** or short polite reply.
+- If the user's message sounds like a **question or search request** (like "show me", "find", "what is", "how many", "list all", etc.), respond with a **polite clarification question** — for example:
+  "Could you please tell me what exactly you would like to search for?"
+  or
+  "Can you clarify what kind of data or details you want me to find?"
+
+Tone:
+- Always stay polite, professional, and friendly.
+- Keep responses short and natural.
+`,
+            },
+            {
+              role: "user",
+              content: message,
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!aiFallbackResponse.ok) {
+      throw new Error(
+        `OpenRouter fallback API failed with status ${aiFallbackResponse.status}`
+      );
+    }
+
+    const aiFallbackData = await aiFallbackResponse.json();
+    const fallbackReply =
+      aiFallbackData.choices[0]?.message?.content?.trim() ||
+      "I'm here to help! Could you please clarify what you’re looking for?";
+
+    console.log("AI Fallback Reply:", fallbackReply);
+
+    // Wrap response in basic HTML for alignment
+    const formattedReply = `
+      <div style="
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+        color: #222;
+        line-height: 1.6;
+        background-color: #f9f9f9;
+        padding: 10px 14px;
+        border-radius: 8px;
+        max-width: 600px;
+        margin: 10px auto;
+      ">
+        ${fallbackReply?.replace(/\n/g, "<br/>")}
+      </div>
+    `;
+
+    return formattedReply;
+  }
+};
+let inputText = "";
 // Chat endpoint with dynamic query generation
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
+    inputText = message;
 
     console.log("Received message:", message);
 
@@ -261,52 +339,98 @@ Return ONLY the SQL query without any explanations or markdown formatting. Do no
       error
     );
 
-    if (error) {
+    if (error || (data && data?.length === 0)) {
       console.error("Database query error:", error);
 
-      // Try to provide a more helpful error message
-      let errorMessage = "Database query failed";
-      if (
-        error.message.includes(
-          "function execute_safe_query(text) does not exist"
-        )
-      ) {
-        errorMessage =
-          "Database function not configured. Please contact administrator.";
-      } else if (
-        error.message.includes("relation") &&
-        error.message.includes("does not exist")
-      ) {
-        errorMessage = "Table not found in database.";
-      } else if (
-        error.message.includes("column") &&
-        error.message.includes("does not exist")
-      ) {
-        errorMessage = "Column not found in table.";
-      }
+      // If no data is found, ask OpenRouter AI to handle generic or question-like messages
 
-      return res.status(500).json({
-        error: errorMessage,
-        details: error.message,
+      const responseText = await GenericResponse(message);
+
+      console.log("responseText if bock : ", responseText);
+
+      res.json({
+        reply: responseText,
+        query: null,
+        data: null, // Include raw data for frontend processing if needed
+        recordCount: data?.length || 0,
+      });
+
+      // Try to provide a more helpful error message
+      //   let errorMessage = "Database query failed";
+      //   if (
+      //     error.message.includes(
+      //       "function execute_safe_query(text) does not exist"
+      //     )
+      //   ) {
+      //     errorMessage =
+      //       "Database function not configured. Please contact administrator.";
+      //   } else if (
+      //     error.message.includes("relation") &&
+      //     error.message.includes("does not exist")
+      //   ) {
+      //     errorMessage = "Table not found in database.";
+      //   } else if (
+      //     error.message.includes("column") &&
+      //     error.message.includes("does not exist")
+      //   ) {
+      //     errorMessage = "Column not found in table.";
+      //   }
+
+      //   return res.status(500).json({
+      //     error: errorMessage,
+      //     details: error.message,
+      //   });
+    } else {
+      const responseText = formatDataForDisplay(data, sqlQuery);
+
+      console.log("responseText 1 : ", responseText);
+      console.log("Sending response to client");
+      res.json({
+        reply: responseText,
+        query: sqlQuery,
+        data: data, // Include raw data for frontend processing if needed
+        recordCount: data?.length || 0,
       });
     }
 
     // Format the response based on query type and data
-    const responseText = formatDataForDisplay(data, sqlQuery);
+  } catch (error) {
+    // console.error("Chat API error:", error);
+    // res.status(500).json({
+    //   error: "An error occurred while processing your request",
+    //   details: error.message,
+    // });
 
-    console.log("Sending response to client");
+    console.log("inputText : ", inputText);
+
+    const responseText = await GenericResponse(inputText);
+
+    console.log("responseText 2 : ", responseText);
     res.json({
       reply: responseText,
-      query: sqlQuery,
-      data: data, // Include raw data for frontend processing if needed
-      recordCount: data?.length || 0,
+      query: "",
+      data: [], // Include raw data for frontend processing if needed
+      recordCount: 0,
     });
-  } catch (error) {
-    console.error("Chat API error:", error);
-    res.status(500).json({
-      error: "An error occurred while processing your request",
-      details: error.message,
-    });
+
+    if (responseText && responseText) {
+      const storedConversations =
+        JSON.parse(localStorage.getItem("failedConversations")) || [];
+
+        console.log("")
+      const newConversation = {
+        prevPrompt: inputText,
+        previousReply: responseText,
+      };
+
+      storedConversations.push(newConversation);
+      localStorage.setItem(
+        "failedConversations",
+        JSON.stringify(storedConversations)
+      );
+
+      console.log("Stored failed conversation:", newConversation);
+    }
   }
 });
 
