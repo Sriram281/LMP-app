@@ -30,22 +30,25 @@ export default function CourseManagement() {
   const loadData = async () => {
     try {
       const [coursesRes, expertsRes] = await Promise.all([
-        supabase.from('courses').select('*').order('created_at', { ascending: false }),
-        supabase.from('experts').select('*')
+        supabase
+          .from("courses")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase.from("experts").select("*"),
       ]);
 
       if (coursesRes.error) {
-        console.error('Error loading courses:', coursesRes.error);
+        console.error("Error loading courses:", coursesRes.error);
       }
-      
+
       if (expertsRes.error) {
-        console.error('Error loading experts:', expertsRes.error);
+        console.error("Error loading experts:", expertsRes.error);
       }
 
       setCourses(coursesRes.data || []);
       setExperts(expertsRes.data || []);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error("Error loading data:", error);
     } finally {
       setLoading(false);
     }
@@ -68,27 +71,27 @@ export default function CourseManagement() {
         is_published: formData.is_published,
       };
 
-      console.log("courseData : ",courseData);
+      console.log("courseData : ", courseData);
 
       if (editingCourse) {
         const updateData = {
           ...courseData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
-        
+
         await supabase
-          .from('courses')
+          .from("courses")
           .update(updateData)
-          .eq('id', editingCourse.id);
+          .eq("id", editingCourse.id);
       } else {
-        await supabase.from('courses').insert([courseData]);
+        await supabase.from("courses").insert([courseData]);
       }
 
       setShowModal(false);
       resetForm();
       loadData();
     } catch (error) {
-      console.error('Error saving course:', error);
+      console.error("Error saving course:", error);
     }
   };
 
@@ -141,15 +144,19 @@ export default function CourseManagement() {
       const { data: coursesData, error: coursesError } = await supabase
         .from("courses")
         .select("*");
-      
+
       if (coursesError) {
         console.error("Error reading courses:", coursesError);
         alert(`Error reading courses: ${coursesError.message}`);
         return;
       }
-      
+
       console.log("Courses data:", coursesData);
-      alert(`Database connection successful. Found ${coursesData?.length || 0} courses.`);
+      alert(
+        `Database connection successful. Found ${
+          coursesData?.length || 0
+        } courses.`
+      );
     } catch (error) {
       console.error("Error testing database connection:", error);
       alert(`Error testing database connection: ${error}`);
@@ -159,73 +166,379 @@ export default function CourseManagement() {
   const addLatestProgrammingCourse = async () => {
     try {
       const latestCourses = [
+        // 🌐 WEB DEVELOPMENT (General)
         {
-          title: "Modern React with Hooks",
-          description: "Learn the latest React features including hooks, context API, and concurrent mode.",
+          title: "Complete Web Development Bootcamp",
+          description:
+            "Learn full-stack development from basics to deployment with hands-on projects.",
           category: "Web Development",
-          domain: "Frontend",
-          subcategory: "React",
-          course_level: "Intermediate",
+          domain: "Full Stack",
+          subcategory: "Web Fundamentals",
+          course_level: "Beginner",
           language: "English",
-          course_duration: "8 hours",
+          course_duration: "20 hours",
           is_published: true,
         },
         {
-          title: "Python for Data Science",
-          description: "Master Python libraries like pandas, numpy, and matplotlib for data analysis.",
-          category: "Data Science",
-          domain: "Data",
-          subcategory: "Python",
+          title: "HTML5 & CSS3 Fundamentals",
+          description:
+            "Master the building blocks of modern websites using semantic HTML and responsive CSS.",
+          category: "Web Development",
+          domain: "Frontend",
+          subcategory: "HTML & CSS",
+          course_level: "Beginner",
+          language: "English",
+          course_duration: "10 hours",
+          is_published: true,
+        },
+        {
+          title: "JavaScript Essentials",
+          description:
+            "Understand JavaScript concepts, DOM manipulation, ES6+ features, and event handling.",
+          category: "Web Development",
+          domain: "Frontend",
+          subcategory: "JavaScript",
           course_level: "Beginner",
           language: "English",
           course_duration: "12 hours",
           is_published: true,
         },
         {
-          title: "Advanced Node.js Patterns",
-          description: "Learn advanced Node.js design patterns and performance optimization techniques.",
+          title: "Version Control with Git & GitHub",
+          description:
+            "Learn Git fundamentals, branching, merging, and collaborating on GitHub.",
           category: "Web Development",
-          domain: "Backend",
-          subcategory: "Node.js",
-          course_level: "Advanced",
+          domain: "Dev Tools",
+          subcategory: "Git & GitHub",
+          course_level: "Beginner",
+          language: "English",
+          course_duration: "6 hours",
+          is_published: true,
+        },
+        {
+          title: "Responsive Web Design with Tailwind CSS",
+          description:
+            "Build responsive and beautiful websites faster using Tailwind CSS.",
+          category: "Web Development",
+          domain: "Frontend",
+          subcategory: "Tailwind CSS",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "8 hours",
+          is_published: true,
+        },
+
+        // 💻 FRONTEND DEVELOPMENT
+        {
+          title: "Modern React with Hooks and Context",
+          description:
+            "Build dynamic UI using React hooks, context API, and reusable components.",
+          category: "Frontend Development",
+          domain: "Frontend",
+          subcategory: "React",
+          course_level: "Intermediate",
           language: "English",
           course_duration: "10 hours",
           is_published: true,
         },
         {
-          title: "Flutter Mobile Development",
-          description: "Build cross-platform mobile apps with Flutter and Dart.",
-          category: "Mobile Development",
-          domain: "Mobile",
-          subcategory: "Flutter",
+          title: "Advanced React Patterns",
+          description:
+            "Explore HOCs, render props, compound components, and performance optimization.",
+          category: "Frontend Development",
+          domain: "Frontend",
+          subcategory: "React Advanced",
+          course_level: "Advanced",
+          language: "English",
+          course_duration: "9 hours",
+          is_published: true,
+        },
+        {
+          title: "TypeScript for React Developers",
+          description:
+            "Add type safety and scalability to React projects using TypeScript.",
+          category: "Frontend Development",
+          domain: "Frontend",
+          subcategory: "TypeScript",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "7 hours",
+          is_published: true,
+        },
+        {
+          title: "React Router & Navigation",
+          description:
+            "Master client-side routing, nested routes, and protected routes in React apps.",
+          category: "Frontend Development",
+          domain: "Frontend",
+          subcategory: "React Router",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "5 hours",
+          is_published: true,
+        },
+        {
+          title: "Next.js Full Guide",
+          description:
+            "Build SSR and SSG web applications using Next.js framework.",
+          category: "Frontend Development",
+          domain: "Frontend",
+          subcategory: "Next.js",
+          course_level: "Advanced",
+          language: "English",
+          course_duration: "12 hours",
+          is_published: true,
+        },
+
+        // ⚙️ BACKEND DEVELOPMENT
+        {
+          title: "Node.js & Express.js API Development",
+          description:
+            "Build scalable REST APIs using Node.js, Express, and MongoDB.",
+          category: "Backend Development",
+          domain: "Backend",
+          subcategory: "Node.js",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "10 hours",
+          is_published: true,
+        },
+        {
+          title: "Spring Boot for Java Developers",
+          description:
+            "Learn to create RESTful services and microservices with Spring Boot.",
+          category: "Backend Development",
+          domain: "Backend",
+          subcategory: "Spring Boot",
           course_level: "Intermediate",
           language: "English",
           course_duration: "15 hours",
           is_published: true,
         },
         {
-          title: "AWS Cloud Architecture",
-          description: "Design and deploy scalable applications on AWS cloud platform.",
-          category: "DevOps",
-          domain: "Cloud",
-          subcategory: "AWS",
+          title: "Building GraphQL APIs with Node.js",
+          description:
+            "Learn to build flexible APIs using GraphQL and Apollo Server.",
+          category: "Backend Development",
+          domain: "Backend",
+          subcategory: "GraphQL",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "8 hours",
+          is_published: true,
+        },
+        {
+          title: "Authentication & Authorization in Web Apps",
+          description:
+            "Implement JWT, OAuth2, and role-based access control for secure apps.",
+          category: "Backend Development",
+          domain: "Backend",
+          subcategory: "Security",
           course_level: "Advanced",
           language: "English",
-          course_duration: "20 hours",
+          course_duration: "7 hours",
           is_published: true,
-        }
+        },
+        {
+          title: "RESTful API Design Principles",
+          description:
+            "Understand how to design scalable, well-structured, and secure APIs.",
+          category: "Backend Development",
+          domain: "Backend",
+          subcategory: "API Design",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "6 hours",
+          is_published: true,
+        },
+
+        // 📱 MOBILE DEVELOPMENT
+        {
+          title: "React Native Crash Course",
+          description:
+            "Develop cross-platform mobile applications using React Native and Expo.",
+          category: "Mobile Development",
+          domain: "Mobile",
+          subcategory: "React Native",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "10 hours",
+          is_published: true,
+        },
+        {
+          title: "Flutter from Scratch",
+          description:
+            "Build native Android and iOS apps with Flutter and Dart.",
+          category: "Mobile Development",
+          domain: "Mobile",
+          subcategory: "Flutter",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "12 hours",
+          is_published: true,
+        },
+        {
+          title: "Flutter State Management",
+          description:
+            "Use Provider, Riverpod, and Bloc for managing app state efficiently.",
+          category: "Mobile Development",
+          domain: "Mobile",
+          subcategory: "State Management",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "7 hours",
+          is_published: true,
+        },
+        {
+          title: "Mobile App UI/UX Design",
+          description:
+            "Design user-friendly mobile interfaces using Figma and Material Design.",
+          category: "Mobile Development",
+          domain: "Mobile",
+          subcategory: "UI/UX",
+          course_level: "Beginner",
+          language: "English",
+          course_duration: "8 hours",
+          is_published: true,
+        },
+        {
+          title: "Publishing Apps to Play Store & App Store",
+          description:
+            "Learn the step-by-step process to publish and manage your mobile apps.",
+          category: "Mobile Development",
+          domain: "Mobile",
+          subcategory: "Deployment",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "5 hours",
+          is_published: true,
+        },
+
+        // 🗄️ DATABASES - MYSQL
+        {
+          title: "MySQL Database Fundamentals",
+          description:
+            "Learn SQL queries, normalization, and relational database concepts with MySQL.",
+          category: "Database",
+          domain: "SQL",
+          subcategory: "MySQL",
+          course_level: "Beginner",
+          language: "English",
+          course_duration: "10 hours",
+          is_published: true,
+        },
+        {
+          title: "Advanced MySQL Queries and Joins",
+          description:
+            "Master subqueries, joins, indexing, and stored procedures.",
+          category: "Database",
+          domain: "SQL",
+          subcategory: "MySQL Advanced",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "8 hours",
+          is_published: true,
+        },
+        {
+          title: "Database Design & Modeling with MySQL",
+          description:
+            "Design efficient relational databases using ER diagrams and normalization rules.",
+          category: "Database",
+          domain: "SQL",
+          subcategory: "Database Design",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "7 hours",
+          is_published: true,
+        },
+
+        // 🍃 DATABASES - MONGODB
+        {
+          title: "MongoDB for Beginners",
+          description:
+            "Learn NoSQL concepts, CRUD operations, and indexing with MongoDB.",
+          category: "Database",
+          domain: "NoSQL",
+          subcategory: "MongoDB",
+          course_level: "Beginner",
+          language: "English",
+          course_duration: "9 hours",
+          is_published: true,
+        },
+        {
+          title: "Mongoose ODM with Node.js",
+          description:
+            "Connect and interact with MongoDB efficiently using Mongoose in Node.js.",
+          category: "Database",
+          domain: "NoSQL",
+          subcategory: "Mongoose",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "7 hours",
+          is_published: true,
+        },
+        {
+          title: "MongoDB Aggregation and Performance Optimization",
+          description:
+            "Use aggregation pipelines and indexing for faster MongoDB queries.",
+          category: "Database",
+          domain: "NoSQL",
+          subcategory: "Aggregation",
+          course_level: "Advanced",
+          language: "English",
+          course_duration: "8 hours",
+          is_published: true,
+        },
+
+        // 🐘 DATABASES - POSTGRESQL
+        {
+          title: "PostgreSQL Essentials",
+          description:
+            "Master PostgreSQL installation, basic SQL, and relational schema creation.",
+          category: "Database",
+          domain: "SQL",
+          subcategory: "PostgreSQL",
+          course_level: "Beginner",
+          language: "English",
+          course_duration: "9 hours",
+          is_published: true,
+        },
+        {
+          title: "PostgreSQL Advanced Features",
+          description:
+            "Work with triggers, stored functions, and JSONB data in PostgreSQL.",
+          category: "Database",
+          domain: "SQL",
+          subcategory: "PostgreSQL Advanced",
+          course_level: "Intermediate",
+          language: "English",
+          course_duration: "8 hours",
+          is_published: true,
+        },
+        {
+          title: "Database Optimization & Indexing in PostgreSQL",
+          description:
+            "Learn how to optimize query performance and database structure.",
+          category: "Database",
+          domain: "SQL",
+          subcategory: "PostgreSQL Optimization",
+          course_level: "Advanced",
+          language: "English",
+          course_duration: "7 hours",
+          is_published: true,
+        },
       ];
 
       const results = await Promise.all(
-        latestCourses.map(course => 
-          supabase.from("courses").insert([course])
-        )
+        latestCourses.map((course) => supabase.from("courses").insert([course]))
       );
-      
-      const errors = results.filter(result => result.error);
+
+      const errors = results.filter((result) => result.error);
       if (errors.length > 0) {
         console.error("Errors occurred while adding courses:", errors);
-        alert(`Some errors occurred while adding courses. Check console for details.`);
+        alert(
+          `Some errors occurred while adding courses. Check console for details.`
+        );
       } else {
         loadData();
         alert("Latest programming courses added successfully!");
@@ -239,16 +552,17 @@ export default function CourseManagement() {
   const filteredCourses = courses.filter(
     (course) =>
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.instructor_id && getExpertName(course.instructor_id).toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (course.instructor_id &&
+        getExpertName(course.instructor_id)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) ||
       (course.subcategory || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       (course.category || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      (course.domain || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+      (course.domain || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.course_level?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.language?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -272,8 +586,10 @@ export default function CourseManagement() {
   };
 
   const getExpertName = (expertId: string) => {
-    const expert = experts.find(e => e.id === expertId);
-    return expert ? expert.full_name || expert.email || 'Unknown Expert' : 'No Instructor';
+    const expert = experts.find((e) => e.id === expertId);
+    return expert
+      ? expert.full_name || expert.email || "Unknown Expert"
+      : "No Instructor";
   };
 
   if (loading) {
@@ -290,7 +606,7 @@ export default function CourseManagement() {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
           Course Management
         </h2>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <button
             onClick={testDatabaseConnection}
             className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
@@ -314,7 +630,7 @@ export default function CourseManagement() {
             <Plus size={20} />
             Add Course
           </button>
-        </div>
+        </div> */}
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -387,7 +703,9 @@ export default function CourseManagement() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                    {course.instructor_id ? getExpertName(course.instructor_id) : "No Instructor"}
+                    {course.instructor_id
+                      ? getExpertName(course.instructor_id)
+                      : "No Instructor"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {getCategoryName(course.category || "") || "N/A"}
@@ -466,13 +784,17 @@ export default function CourseManagement() {
                 </label>
                 <select
                   value={formData.instructor_id}
-                  onChange={(e) => setFormData({ ...formData, instructor_id: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, instructor_id: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Select a Trainer</option>
                   {experts.map((expert) => (
                     <option key={expert.id} value={expert.id}>
-                      {expert.full_name || expert.email || `Expert ${expert.id.substring(0, 8)}`}
+                      {expert.full_name ||
+                        expert.email ||
+                        `Expert ${expert.id.substring(0, 8)}`}
                     </option>
                   ))}
                 </select>
@@ -485,7 +807,9 @@ export default function CourseManagement() {
                 <input
                   type="text"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
                   placeholder="e.g., Web Development"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 />
@@ -498,7 +822,9 @@ export default function CourseManagement() {
                 <input
                   type="text"
                   value={formData.domain}
-                  onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, domain: e.target.value })
+                  }
                   placeholder="e.g., Frontend, Backend, Data"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 />
@@ -510,7 +836,9 @@ export default function CourseManagement() {
                 </label>
                 <select
                   value={formData.subcategory}
-                  onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subcategory: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Select Subcategory</option>

@@ -273,146 +273,146 @@ export const tableSchemas = {
       "column_default": null
     }
   ],
-  "categories": [
-    {
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-      "column_default": "gen_random_uuid()"
-    },
-    {
-      "column_name": "name",
-      "data_type": "text",
-      "is_nullable": "YES",
-      "column_default": null
-    },
-    {
-      "column_name": "description",
-      "data_type": "text",
-      "is_nullable": "YES",
-      "column_default": null
-    },
-    {
-      "column_name": "created_at",
-      "data_type": "timestamp with time zone",
-      "is_nullable": "YES",
-      "column_default": "now()"
-    }
-  ],
-  "domains": [
-    {
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-      "column_default": "gen_random_uuid()"
-    },
-    {
-      "column_name": "name",
-      "data_type": "text",
-      "is_nullable": "YES",
-      "column_default": null
-    },
-    {
-      "column_name": "description",
-      "data_type": "text",
-      "is_nullable": "YES",
-      "column_default": null
-    },
-    {
-      "column_name": "created_at",
-      "data_type": "timestamp with time zone",
-      "is_nullable": "YES",
-      "column_default": "now()"
-    }
-  ],
-  "discussions": [
-    {
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-      "column_default": "gen_random_uuid()"
-    },
-    {
-      "column_name": "title",
-      "data_type": "text",
-      "is_nullable": "NO",
-      "column_default": null
-    },
-    {
-      "column_name": "content",
-      "data_type": "text",
-      "is_nullable": "NO",
-      "column_default": null
-    },
-    {
-      "column_name": "author_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-      "column_default": null
-    },
-    {
-      "column_name": "course_id",
-      "data_type": "uuid",
-      "is_nullable": "YES",
-      "column_default": null
-    },
-    {
-      "column_name": "created_at",
-      "data_type": "timestamp with time zone",
-      "is_nullable": "YES",
-      "column_default": "now()"
-    },
-    {
-      "column_name": "likes_count",
-      "data_type": "bigint",
-      "is_nullable": "YES",
-      "column_default": "0"
-    }
-  ],
-  "enrollments": [
-    {
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-      "column_default": "gen_random_uuid()"
-    },
-    {
-      "column_name": "user_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-      "column_default": null
-    },
-    {
-      "column_name": "course_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-      "column_default": null
-    },
-    {
-      "column_name": "enrolled_at",
-      "data_type": "timestamp with time zone",
-      "is_nullable": "YES",
-      "column_default": "now()"
-    },
-    {
-      "column_name": "progress",
-      "data_type": "integer",
-      "is_nullable": "YES",
-      "column_default": "0"
-    },
-    {
-      "column_name": "completed",
-      "data_type": "boolean",
-      "is_nullable": "YES",
-      "column_default": "false"
-    },
-    {
-      "column_name": "completed_at",
-      "data_type": "timestamp with time zone",
-      "is_nullable": "YES",
-      "column_default": null
-    }
-  ]
+//   "categories": [
+//     {
+//       "column_name": "id",
+//       "data_type": "uuid",
+//       "is_nullable": "NO",
+//       "column_default": "gen_random_uuid()"
+//     },
+//     {
+//       "column_name": "name",
+//       "data_type": "text",
+//       "is_nullable": "YES",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "description",
+//       "data_type": "text",
+//       "is_nullable": "YES",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "created_at",
+//       "data_type": "timestamp with time zone",
+//       "is_nullable": "YES",
+//       "column_default": "now()"
+//     }
+//   ],
+//   "domains": [
+//     {
+//       "column_name": "id",
+//       "data_type": "uuid",
+//       "is_nullable": "NO",
+//       "column_default": "gen_random_uuid()"
+//     },
+//     {
+//       "column_name": "name",
+//       "data_type": "text",
+//       "is_nullable": "YES",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "description",
+//       "data_type": "text",
+//       "is_nullable": "YES",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "created_at",
+//       "data_type": "timestamp with time zone",
+//       "is_nullable": "YES",
+//       "column_default": "now()"
+//     }
+//   ],
+//   "discussions": [
+//     {
+//       "column_name": "id",
+//       "data_type": "uuid",
+//       "is_nullable": "NO",
+//       "column_default": "gen_random_uuid()"
+//     },
+//     {
+//       "column_name": "title",
+//       "data_type": "text",
+//       "is_nullable": "NO",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "content",
+//       "data_type": "text",
+//       "is_nullable": "NO",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "author_id",
+//       "data_type": "uuid",
+//       "is_nullable": "NO",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "course_id",
+//       "data_type": "uuid",
+//       "is_nullable": "YES",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "created_at",
+//       "data_type": "timestamp with time zone",
+//       "is_nullable": "YES",
+//       "column_default": "now()"
+//     },
+//     {
+//       "column_name": "likes_count",
+//       "data_type": "bigint",
+//       "is_nullable": "YES",
+//       "column_default": "0"
+//     }
+//   ],
+//   "enrollments": [
+//     {
+//       "column_name": "id",
+//       "data_type": "uuid",
+//       "is_nullable": "NO",
+//       "column_default": "gen_random_uuid()"
+//     },
+//     {
+//       "column_name": "user_id",
+//       "data_type": "uuid",
+//       "is_nullable": "NO",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "course_id",
+//       "data_type": "uuid",
+//       "is_nullable": "NO",
+//       "column_default": null
+//     },
+//     {
+//       "column_name": "enrolled_at",
+//       "data_type": "timestamp with time zone",
+//       "is_nullable": "YES",
+//       "column_default": "now()"
+//     },
+//     {
+//       "column_name": "progress",
+//       "data_type": "integer",
+//       "is_nullable": "YES",
+//       "column_default": "0"
+//     },
+//     {
+//       "column_name": "completed",
+//       "data_type": "boolean",
+//       "is_nullable": "YES",
+//       "column_default": "false"
+//     },
+//     {
+//       "column_name": "completed_at",
+//       "data_type": "timestamp with time zone",
+//       "is_nullable": "YES",
+//       "column_default": null
+//     }
+//   ]
 };
 
 export default tableSchemas;
