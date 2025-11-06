@@ -118,6 +118,91 @@ export default function AIChatbot() {
     scrollToBottom();
   }, [messages]);
 
+  // Function to generate humanized response using OpenRouter AI
+  const generateHumanizedResponse = async (
+    originalQuestion: string,
+    rawData: string
+  ) => {
+    try {
+      console.log("Generating humanized response with OpenRouter AI");
+      console.log("Original question:", originalQuestion);
+      console.log("Raw data:", rawData);
+
+      // Get API key from environment variables
+      const apiKey = import.meta.env.VITE_AI_API_KEY;
+      const apiUrl =
+        import.meta.env.VITE_API_URL ||
+        "https://openrouter.ai/api/v1/chat/completions";
+
+      if (!apiKey) {
+        throw new Error(
+          "OpenRouter API key not found in environment variables"
+        );
+      }
+
+      // Call OpenRouter API to generate humanized response
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "minimax/minimax-m2:free",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful AI assistant for a Learning Management System. Your task is to take raw database query results and create a natural, professional response to the user's original question. Format the response as clean HTML with basic inline CSS for styling. Use semantic HTML tags for proper structure."
+            },
+            {
+              role: "user",
+              content: `Original question: "${originalQuestion}"
+
+Raw database results: "${rawData}"
+
+Please provide a natural, professional response to the original question based on the database results. Format your response as clean HTML. Follow these guidelines:
+
+1. Use basic HTML tags like <div>, <p>, <strong>, <br>, <ul>, <ol>, <li>, <h1>, <h2>, etc.
+2. For styling, use simple inline CSS only:
+   - For bold titles: <strong> or <h2> with font-weight:bold
+   - For content alignment: text-align:center, margin, padding
+   - For spacing: margin-bottom, margin-top
+3. Do NOT use advanced CSS frameworks like Tailwind, etc.
+4. Do NOT use any markdown formatting or special characters
+5. Make sure every text or sentence is included in the HTML
+6. Keep the formatting clean and readable
+7. Wrap everything in a single container div
+
+Example format:
+<div>
+  <h2 style="font-weight:bold;margin-bottom:10px;">Courses Found</h2>
+  <p><strong>Course Title:</strong> Modern React with Hooks</p>
+  <p><strong>Description:</strong> Learn the latest React features...</p>
+</div>`
+            }
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `OpenRouter API request failed with status ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      const humanizedResponse =
+        data.choices[0]?.message?.content ||
+        "I found some information that might help you.";
+
+      console.log("Humanized response generated:", humanizedResponse);
+      return humanizedResponse;
+    } catch (error) {
+      console.error("Error generating humanized response:", error);
+      return `Based on your query, here's what I found:\n\n${rawData}`;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || isLoading) return;
@@ -136,7 +221,7 @@ export default function AIChatbot() {
 
     try {
       console.log("Sending request to chat API with message:", inputText);
-      
+
       // Send inputText directly to the backend
       const response = await fetch("http://localhost:3004/chat", {
         method: "POST",
@@ -155,15 +240,23 @@ export default function AIChatbot() {
       if (response.ok) {
         const data = await response.json();
         console.log("Full response data from server:", data);
-        
+
         // Log the AI generated query if it exists in the response
         if (data.query) {
           console.log("AI Generated Query:", data.query);
         }
-        
+
+        console.log("Data.reply : ", data.reply);
+
+        // Generate humanized response using OpenRouter AI
+        const humanizedResponse = await generateHumanizedResponse(
+          inputText,
+          data.reply
+        );
+
         const aiMessage: Message = {
           id: Date.now().toString(),
-          text: data.reply,
+          text: humanizedResponse,
           sender: "ai",
           timestamp: new Date(),
         };
@@ -279,7 +372,14 @@ export default function AIChatbot() {
                       : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{message.text}</p>
+                  {message.sender === "ai" ? (
+                    <div 
+                      className="whitespace-normal"
+                      dangerouslySetInnerHTML={{ __html: message.text }}
+                    />
+                  ) : (
+                    <p className="whitespace-pre-wrap">{message.text}</p>
+                  )}
                   <p className="text-xs mt-1 opacity-70">
                     {message.timestamp.toLocaleTimeString([], {
                       hour: "2-digit",
