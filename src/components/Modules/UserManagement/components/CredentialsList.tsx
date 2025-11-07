@@ -154,7 +154,7 @@ export default function CredentialsList({
                     }
                     `}
                   > */}
-                  {user.role}
+                  {user.role === "student" ? "Client" : user.role}
                   {/* </span> */}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">

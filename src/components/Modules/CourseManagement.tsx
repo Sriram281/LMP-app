@@ -23,6 +23,14 @@ export default function CourseManagement() {
     is_published: false,
   });
 
+  // Move the getExpertName function here so it's available for the filteredCourses declaration
+  const getExpertName = (expertId: string) => {
+    const expert = experts.find((e) => e.id === expertId);
+    return expert
+      ? expert.full_name || expert.email || "Unknown Expert"
+      : "No Instructor";
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -585,12 +593,7 @@ export default function CourseManagement() {
     return subcategories[subcategoryId] || subcategoryId;
   };
 
-  const getExpertName = (expertId: string) => {
-    const expert = experts.find((e) => e.id === expertId);
-    return expert
-      ? expert.full_name || expert.email || "Unknown Expert"
-      : "No Instructor";
-  };
+  // Remove the duplicate getExpertName function declaration here since we moved it up
 
   if (loading) {
     return (

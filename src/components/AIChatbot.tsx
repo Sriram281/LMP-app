@@ -161,25 +161,39 @@ export default function AIChatbot() {
 
 Raw database results: "${rawData}"
 
-Please provide a natural, professional response to the original question based on the database results. Format your response as clean HTML. Follow these guidelines:
+Please provide a natural, professional response to the original question based on the database results. Format your response as clean HTML. Follow these additional guidelines exactly:
 
-1. Use basic HTML tags like <div>, <p>, <strong>, <br>, <ul>, <ol>, <li>, <h1>, <h2>, etc.
-2. For styling, use simple inline CSS only:
-   - For bold titles: <strong> or <h2> with font-weight:bold
-   - For content alignment: text-align:center, margin, padding
-   - For spacing: margin-bottom, margin-top
-3. Do NOT use advanced CSS frameworks like Tailwind, etc.
-4. Do NOT use any markdown formatting or special characters
-5. Make sure every text or sentence is included in the HTML
-6. Keep the formatting clean and readable
-7. Wrap everything in a single container div
+1. OUTPUT STRUCTURE:
+   - Wrap everything in a single container <div>.
+   - Present only user-facing content (titles, names, descriptions, scores, course names, etc.) derived from the raw database results.
+   - Do NOT include any system metadata or generated information such as:
+     - id
+     - created_at
+     - updated_at
+     - status
+     - deleted_at
+     - record id
+     - created date
 
-Example format:
+2. HTML & STYLING RULES:
+   - Use only simple inline CSS (style="...") and semantic HTML tags such as <div>, <p>, <strong>, <br>, <ul>, <ol>, <li>, <h1>, <h2>.
+   - For bold titles use <h2 style="font-weight:bold;margin-bottom:10px;"> or <strong>.
+   - For alignment use text-align:center where appropriate.
+   - Use margin-top and margin-bottom for spacing.
+   - Do NOT use Tailwind, external CSS frameworks, or markdown.
+   - Make sure every text or sentence in your final answer is included inside the HTML container.
+
+3. DELIVERY:
+   - Return only the HTML snippet as the assistant's reply (no extra JSON, no commentary).
+
+4. EXAMPLE (for reference — do not include this example text in your final output):
 <div>
   <h2 style="font-weight:bold;margin-bottom:10px;">Courses Found</h2>
   <p><strong>Course Title:</strong> Modern React with Hooks</p>
   <p><strong>Description:</strong> Learn the latest React features...</p>
-</div>`,
+</div>
+
+Please produce the HTML response now.`,
             },
           ],
         }),

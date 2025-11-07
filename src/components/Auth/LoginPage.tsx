@@ -116,7 +116,7 @@ export default function LoginPage() {
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
-            {isLogin ? 'Sign in to continue to LMS' : 'Sign up to get started'}
+            {isLogin ? 'Sign in to continue to Blue Lotus Tech' : 'Sign up to get started'}
           </p>
 
           {error && (

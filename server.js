@@ -413,24 +413,24 @@ Return ONLY the SQL query without any explanations or markdown formatting. Do no
       recordCount: 0,
     });
 
-    if (responseText && responseText) {
-      const storedConversations =
-        JSON.parse(localStorage.getItem("failedConversations")) || [];
+    // if (responseText && responseText) {
+    //   const storedConversations =
+    //     JSON.parse(localStorage.getItem("failedConversations")) || [];
 
-        console.log("")
-      const newConversation = {
-        prevPrompt: inputText,
-        previousReply: responseText,
-      };
+    //   console.log("storedConversations : ", storedConversations);
+    //   const newConversation = {
+    //     prevPrompt: inputText,
+    //     previousReply: responseText,
+    //   };
 
-      storedConversations.push(newConversation);
-      localStorage.setItem(
-        "failedConversations",
-        JSON.stringify(storedConversations)
-      );
+    //   storedConversations.push(newConversation);
+    //   localStorage.setItem(
+    //     "failedConversations",
+    //     JSON.stringify(storedConversations)
+    //   );
 
-      console.log("Stored failed conversation:", newConversation);
-    }
+    //   console.log("Stored failed conversation:", newConversation);
+    // }
   }
 });
 
